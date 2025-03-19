@@ -118,6 +118,8 @@ def prompt_for_paths():
     path_window.title("输入路径")
 
     # 输入框和标签
+    tk.Label(path_window, text="请使用双反斜杠（\\）或正斜杠（/）作为路径分隔符").pack(pady=5)
+
     tk.Label(path_window, text="输入待筛选图片的路径:").pack(pady=10)
     base_path_entry = tk.Entry(path_window, width=50)
     base_path_entry.pack(pady=10)
