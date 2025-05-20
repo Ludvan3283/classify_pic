@@ -122,11 +122,11 @@ def prompt_for_paths():
 
     tk.Label(path_window, text="输入待筛选图片的路径:").pack(pady=10)
     base_path_entry = tk.Entry(path_window, width=50)
-    base_path_entry.pack(pady=10)
+    base_path_entry.pack(pady=10, padx=20)
 
     tk.Label(path_window, text="输入图片分类的目标路径:").pack(pady=10)
     target_base_path_entry = tk.Entry(path_window, width=50)
-    target_base_path_entry.pack(pady=10)
+    target_base_path_entry.pack(pady=10, padx=20)
 
     def on_submit():
         base_path = base_path_entry.get()
