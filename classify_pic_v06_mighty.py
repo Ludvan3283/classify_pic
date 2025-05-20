@@ -146,7 +146,7 @@ def prompt_for_paths():
         classify_images(base_path, target_base_path)
 
     # 提交按钮
-    tk.Button(path_window, text="提交", command=on_submit).pack(pady=20)
+    tk.Button(path_window, text="确认", command=on_submit).pack(pady=20)
 
     # 启动路径输入窗口的事件循环
     path_window.mainloop()
