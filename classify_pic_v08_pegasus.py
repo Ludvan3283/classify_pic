@@ -74,6 +74,7 @@ def classify_images(base_path, target_base_path, custom_targets):
 
     instructions = (
             "操作说明:\n"
+            "需要用英文键盘操作\n"
             "A: 逆时针旋转90度\n"
             "D: 顺时针旋转90度\n"
             "W: 垂直翻转\n"
