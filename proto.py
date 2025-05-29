@@ -242,7 +242,7 @@ def show_info_dialog():
         return os.path.join(os.path.abspath("."), relative_path)
 
     # 加载并调整图片大小
-    image_path = resource_path('icon\\vergil.jpg')  # 替换为您的图片路径
+    image_path = resource_path('icon/vergil.jpg')  # 替换为您的图片路径
     original_image = Image.open(image_path)
     resized_image = original_image.resize(
         (info_dialog_width, int(info_dialog_width * original_image.height / original_image.width)), Image.LANCZOS)
