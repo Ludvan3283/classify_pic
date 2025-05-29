@@ -250,6 +250,7 @@ def show_info_dialog():
     close_button = tk.Button(info_dialog, text="返回", command=close_dialog)
     close_button.pack(pady=5)
 
+#输入路径和类别的对话框
 def prompt_for_paths():
     path_window = tk.Tk()
     path_window.title("输入路径和分类")
@@ -259,24 +260,22 @@ def prompt_for_paths():
     center_window(path_window, 400, 500)
 
     tk.Label(path_window, text="请使用双反斜杠（\\\\）或正斜杠（/）作为路径分隔符").pack(pady=5)
-    tk.Label(path_window, text="输入待筛选图片的路径:").pack(pady=10)
+    tk.Label(path_window, text="输入待筛选图片的路径:").pack(pady=5)
     base_path_entry = tk.Entry(path_window, width=50)
     base_path_entry.pack(pady=10, padx=20)
 
-    tk.Label(path_window, text="输入图片分类的目标路径:").pack(pady=10)
+    tk.Label(path_window, text="输入图片分类的目标路径:").pack(pady=5)
     target_base_path_entry = tk.Entry(path_window, width=50)
     target_base_path_entry.pack(pady=10, padx=20)
 
     # 新增：图片最大大小输入框
-    tk.Label(path_window, text="图片最大宽高（格式：宽,高）:").pack(pady=10)
-    tk.Label(path_window, text="中英文逗号均可").pack(pady=2)
+    tk.Label(path_window, text="图片最大宽高（格式：宽,高）:\n中英文逗号均可").pack(pady=5)
     max_size_entry = tk.Entry(path_window, width=20)
     max_size_entry.pack(pady=10, padx=20)
     max_size_entry.insert(0, f"{MAX_IMAGE_SIZE[0]},{MAX_IMAGE_SIZE[1]}")
 
     saved_categories = load_categories()
-    tk.Label(path_window, text="自定义分类(多个分类用逗号（中、英均可）分隔，留空则使用默认分类):").pack(pady=10)
-    tk.Label(path_window, text="默认：有问题，没有问题").pack(pady=2)
+    tk.Label(path_window, text="自定义分类(多个分类用逗号（中、英均可）分隔，留空则使用默认分类)\n默认：有问题，没有问题:").pack(pady=5)
     custom_categories_entry = tk.Entry(path_window, width=50)
     custom_categories_entry.pack(pady=10, padx=20)
 
@@ -285,10 +284,10 @@ def prompt_for_paths():
 
     # 在左下角添加文本并绑定点击事件
     info_label = tk.Label(path_window, text="源码链接", fg="blue", cursor="hand2")
-    info_label.pack(side=tk.BOTTOM, anchor='sw', padx=10, pady=10)
+    info_label.pack(side=tk.BOTTOM, anchor='sw', padx=10, pady=5)
     info_label.bind("<Button-1>", lambda e: show_info_dialog())
 
-
+    #提交路径与类别
     def on_submit():
         base_path = base_path_entry.get()
         target_base_path = target_base_path_entry.get()
