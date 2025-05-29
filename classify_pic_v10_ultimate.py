@@ -222,8 +222,15 @@ def center_window(window, width, height):
     y = (screen_height // 2) - (height // 2)
     window.geometry(f"{width}x{height}+{x}+{y}")
 
+# 获取资源文件的绝对路径，兼容开发环境和 PyInstaller 打包后
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        # PyInstaller 打包后的临时目录
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
 #另一个对话框，显示源码链接
-def show_info_dialog():
+def show_info_dialog(image_path):
     info_dialog_width = 500
     info_dialog_height = 400
 
@@ -236,15 +243,6 @@ def show_info_dialog():
     info_label = tk.Label(info_dialog, text="链接：https://github.com/Ludvan3283/classify_pic", font=("Arial", 10))
     info_label.pack(pady=20)
 
-    # 获取资源文件的绝对路径，兼容开发环境和 PyInstaller 打包后
-    def resource_path(relative_path):
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstaller 打包后的临时目录
-            return os.path.join(sys._MEIPASS, relative_path)
-        return os.path.join(os.path.abspath("."), relative_path)
-
-    # 加载并调整图片大小
-    image_path = resource_path('icon/vergil.jpg')  # 替换为您的图片路径
     original_image = Image.open(image_path)
     resized_image = original_image.resize(
         (info_dialog_width, int(info_dialog_width * original_image.height / original_image.width)), Image.LANCZOS)
@@ -268,6 +266,10 @@ def prompt_for_paths():
     path_window.geometry("400x500")  # 设置固定大小
     path_window.resizable(False, False)  # 禁止调整窗口大小
     path_window.attributes("-alpha", 0)  # 初始透明度为0
+
+    # 加载并调整图片大小
+    image_path = resource_path('icon\\vergil.jpg')  # 替换为您的图片路径
+
     center_window(path_window, 400, 500)
 
     tk.Label(path_window, text="请使用双反斜杠（\\\\）或正斜杠（/）作为路径分隔符").pack(pady=5)
@@ -296,7 +298,7 @@ def prompt_for_paths():
     # 在左下角添加文本并绑定点击事件
     info_label = tk.Label(path_window, text="源码链接", fg="blue", cursor="hand2")
     info_label.pack(side=tk.BOTTOM, anchor='sw', padx=10, pady=5)
-    info_label.bind("<Button-1>", lambda e: show_info_dialog())
+    info_label.bind("<Button-1>", lambda e: show_info_dialog(image_path))
 
     #提交路径与类别
     def on_submit():
