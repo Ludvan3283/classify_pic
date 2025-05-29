@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import json
+import sys
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from PIL import Image, ImageTk
@@ -219,6 +220,7 @@ def center_window(window, width, height):
     # 设置窗口位置
     window.geometry(f"{width}x{height}+{x}+{y}")
 
+#另一个对话框，显示源码链接
 def show_info_dialog():
     info_dialog_width = 500
     info_dialog_height = 400
@@ -232,8 +234,15 @@ def show_info_dialog():
     info_label = tk.Label(info_dialog, text="链接：https://github.com/Ludvan3283/classify_pic", font=("Arial", 10))
     info_label.pack(pady=20)
 
+    # 获取资源文件的绝对路径，兼容开发环境和 PyInstaller 打包后
+    def resource_path(relative_path):
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller 打包后的临时目录
+            return os.path.join(sys._MEIPASS, relative_path)
+        return os.path.join(os.path.abspath("."), relative_path)
+
     # 加载并调整图片大小
-    image_path = r"icon\vergil.jpg"  # 替换为您的图片路径
+    image_path = resource_path('icon/vergil.jpg')  # 替换为您的图片路径
     original_image = Image.open(image_path)
     resized_image = original_image.resize(
         (info_dialog_width, int(info_dialog_width * original_image.height / original_image.width)), Image.LANCZOS)
