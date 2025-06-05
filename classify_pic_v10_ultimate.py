@@ -10,9 +10,13 @@ import time
 
 MAX_IMAGE_SIZE = (5000, 5000)
 
+DISPLAY_SIZE = (800, 500)  # 固定的显示尺寸
+
+
 # 自定义异常
 class ImageTooLargeError(Exception):
     pass
+
 
 # 自定义对话框
 class NoCancelDialog(simpledialog.Dialog):
@@ -41,10 +45,12 @@ class NoCancelDialog(simpledialog.Dialog):
         self.bind("<Return>", self.ok)
         box.pack(pady=5)
 
+
 # 类别管理功能
 def save_categories(categories):
     with open("categories.json", "w", encoding="utf-8") as f:
         json.dump(categories, f, ensure_ascii=False, indent=2)
+
 
 def load_categories():
     if os.path.exists("categories.json"):
@@ -54,6 +60,7 @@ def load_categories():
             except Exception:
                 return []
     return []
+
 
 # 图像分类功能
 def classify_images(base_path, target_base_path, custom_targets, max_image_size=(5000, 5000)):
@@ -77,20 +84,22 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
     history = []
     current_image = None
     tk_img = None
+    key_buffer = ''
 
     label = tk.Label(root)
     label.place(x=0, y=0, relwidth=1, relheight=1)
 
     instructions = (
-        "操作说明:\n"
-        "需要用英文键盘操作\n"
-        "A: 逆时针旋转90度\n"
-        "D: 顺时针旋转90度\n"
-        "W: 垂直翻转\n"
-        "S: 水平翻转\n"
-        "\n按数字键分类图片:\n"
-        + "\n".join(f"{i}: {target}" for i, target in enumerate(all_targets, 1))
-        + "\n\n0: 退出\n-: 回滚上一步"
+            "操作说明:\n"
+            "需要用英文键盘操作\n"
+            "A: 逆时针旋转90度\n"
+            "D: 顺时针旋转90度\n"
+            "W: 垂直翻转\n"
+            "S: 水平翻转\n"
+            "\n分类图片:\n"
+            "输入数字(1-{})后按空格或回车确认\n".format(len(all_targets))
+            + "\n".join(f"{i}: {target}" for i, target in enumerate(all_targets, 1))
+            + "\n\n0: 退出\n-: 回滚上一步\n退格键: 删除输入的数字"
     )
     instruction_label = tk.Label(
         root, text=instructions, justify=tk.LEFT, font=("Arial", 14),
@@ -112,7 +121,10 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
                 current_image = img.copy()
                 if current_image.width > max_image_size[0] or current_image.height > max_image_size[1]:
                     raise ImageTooLargeError(f"图像 {image_name} 超过最大尺寸限制")
+
+                # 保持原始图像不变，仅调整显示大小
                 display_img = current_image.copy()
+                display_img.thumbnail(DISPLAY_SIZE, Image.LANCZOS)
                 tk_img = ImageTk.PhotoImage(display_img)
                 label.config(image=tk_img)
                 root.title(f"分类图片：{image_name}  ({current_index + 1}/{len(images)})")
@@ -134,6 +146,7 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
         nonlocal tk_img
         if current_image is not None:
             display_img = current_image.copy()
+            display_img.thumbnail(DISPLAY_SIZE, Image.LANCZOS)
             tk_img = ImageTk.PhotoImage(display_img)
             label.config(image=tk_img)
 
@@ -146,7 +159,6 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
                 current_image = current_image.rotate(-90, expand=True)
             update_image()
 
-
     def flip_image(axis):
         nonlocal current_image
         if current_image is not None:
@@ -156,34 +168,68 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
                 current_image = current_image.transpose(Image.FLIP_LEFT_RIGHT)
             update_image()
 
-    # 键盘事件处理
+    # 在创建instruction_label之后添加输入显示标签
+    input_display = tk.Label(
+        root, text="输入: ", font=("Arial", 20),
+        bg='white', fg='black', bd=2, relief='solid'
+    )
+    input_display.place(relx=0.5, y=50, anchor='n', x=-20, rely=0)
+
+    # 修改key_press函数如下：
     def key_press(event):
-        nonlocal current_index, current_image
+        nonlocal current_index, current_image, key_buffer
         key = event.char
         lt = len(all_targets)
+
+        # 更新输入显示
+        def update_display():
+            input_display.config(text=f"输入: {key_buffer}")
+
+        # 0键直接退出（放在最前面处理）
+        if key == '0':
+            if messagebox.askyesno("退出", "确认退出分类吗？"):
+                root.destroy()
+            return
+
         if current_index >= len(images):
             return
+
         image_name = images[current_index]
         image_path = os.path.join(base_path, image_name)
 
-        if key in '123456789':
-            idx = int(key)
-            if 1 <= idx <= lt:
-                target_folder = os.path.join(target_base_path, all_targets[idx - 1])
-                os.makedirs(target_folder, exist_ok=True)
-                save_path = os.path.join(target_folder, image_name)
-                try:
-                    if current_image is not None:
-                        current_image.save(save_path)
-                    os.remove(image_path)
-                    history.append((image_path, save_path, current_image.copy()))
-                    images.pop(current_index)
-                    load_image()
-                except Exception as e:
-                    messagebox.showerror("错误", f"保存图片失败: {e}")
-        elif key == '0':
-            if messagebox.askyesno("退出", "确认退出分类吗？"):
-                root.destroy()
+        # 处理数字输入
+        if key.isdigit():
+            key_buffer += key
+            update_display()
+            return
+
+        # 处理确认键（空格或回车）
+        if key in (' ', '\r') and key_buffer:
+            try:
+                idx = int(key_buffer)
+                if 1 <= idx <= lt:
+                    target_folder = os.path.join(target_base_path, all_targets[idx - 1])
+                    os.makedirs(target_folder, exist_ok=True)
+                    save_path = os.path.join(target_folder, image_name)
+                    try:
+                        if current_image is not None:
+                            current_image.save(save_path)
+                        os.remove(image_path)
+                        history.append((image_path, save_path, current_image.copy()))
+                        images.pop(current_index)
+                        key_buffer = ''
+                        update_display()
+                        load_image()
+                    except Exception as e:
+                        messagebox.showerror("错误", f"保存图片失败: {e}")
+                else:
+                    messagebox.showerror("错误", f"请输入1-{lt}范围内的数字")
+                    key_buffer = ''
+                    update_display()
+            except ValueError:
+                messagebox.showerror("错误", "无效的数字输入")
+                key_buffer = ''
+                update_display()
         elif key == '-':
             if history:
                 last_image_path, last_save_path, last_img = history.pop()
@@ -201,11 +247,15 @@ def classify_images(base_path, target_base_path, custom_targets, max_image_size=
             flip_image('vertical')
         elif key == 's':
             flip_image('horizontal')
+        elif key == '\x08':  # 退格键
+            key_buffer = key_buffer[:-1]
+            update_display()
 
     root.bind("<Key>", key_press)
     load_image()
     root.mainloop()
     save_categories(all_targets)
+
 
 # 用户界面相关功能
 def fade_in(window):
@@ -214,13 +264,15 @@ def fade_in(window):
         window.update()
         time.sleep(0.05)  # 控制渐变速度
 
-#居中窗口
+
+# 居中窗口
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = (screen_width // 2) - (width // 2)
     y = (screen_height // 2) - (height // 2)
     window.geometry(f"{width}x{height}+{x}+{y}")
+
 
 # 获取资源文件的绝对路径，兼容开发环境和 PyInstaller 打包后
 def resource_path(relative_path):
@@ -229,7 +281,8 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
-#另一个对话框，显示源码链接
+
+# 另一个对话框，显示源码链接
 def show_info_dialog(image_path):
     info_dialog_width = 500
     info_dialog_height = 400
@@ -259,7 +312,8 @@ def show_info_dialog(image_path):
     close_button = tk.Button(info_dialog, text="返回", command=close_dialog)
     close_button.pack(pady=5)
 
-#输入路径和类别的对话框
+
+# 输入路径和类别的对话框
 def prompt_for_paths():
     path_window = tk.Tk()
     path_window.title("输入路径和分类")
@@ -288,7 +342,8 @@ def prompt_for_paths():
     max_size_entry.insert(0, f"{MAX_IMAGE_SIZE[0]},{MAX_IMAGE_SIZE[1]}")
 
     saved_categories = load_categories()
-    tk.Label(path_window, text="自定义分类(多个分类用逗号（中、英均可）分隔，留空则使用默认分类)\n默认：有问题，没有问题:").pack(pady=5)
+    tk.Label(path_window,
+             text="自定义分类(多个分类用逗号（中、英均可）分隔，留空则使用默认分类)\n默认：有问题，没有问题:").pack(pady=5)
     custom_categories_entry = tk.Entry(path_window, width=50)
     custom_categories_entry.pack(pady=10, padx=20)
 
@@ -300,7 +355,7 @@ def prompt_for_paths():
     info_label.pack(side=tk.BOTTOM, anchor='sw', padx=10, pady=5)
     info_label.bind("<Button-1>", lambda e: show_info_dialog(image_path))
 
-    #提交路径与类别
+    # 提交路径与类别
     def on_submit():
         base_path = base_path_entry.get()
         target_base_path = target_base_path_entry.get()
@@ -317,7 +372,8 @@ def prompt_for_paths():
             return
 
         custom_categories = custom_categories_entry.get().strip()
-        custom_targets = [cat.strip() for cat in re.split('[,，]', custom_categories) if cat.strip()] if custom_categories else []
+        custom_targets = [cat.strip() for cat in re.split('[,，]', custom_categories) if
+                          cat.strip()] if custom_categories else []
 
         if not os.path.isdir(base_path):
             messagebox.showerror("错误", "找不到待筛选图片的路径")
@@ -335,6 +391,7 @@ def prompt_for_paths():
     fade_in(path_window)
 
     path_window.mainloop()
+
 
 if __name__ == "__main__":
     prompt_for_paths()
