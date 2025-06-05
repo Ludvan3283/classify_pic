@@ -1,4 +1,4 @@
-#proto为过渡用文件，如需修改代码推荐ultimate或proto（函数分割不同）
+#proto为过渡用文件，如需修改代码推荐ultimate或proto（没有区别）
 
 --Growing
 
