@@ -262,7 +262,7 @@ def fade_in(window):
     for i in range(11):
         window.attributes("-alpha", i * 0.1)  # 设置透明度
         window.update()
-        time.sleep(0.05)  # 控制渐变速度
+        time.sleep(0.01)  # 控制渐变速度
 
 
 # 居中窗口
