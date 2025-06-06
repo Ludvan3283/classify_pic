@@ -10,7 +10,7 @@ import time
 
 MAX_IMAGE_SIZE = (5000, 5000)
 
-DISPLAY_SIZE = (800, 500)  # 固定的显示尺寸
+DISPLAY_SIZE = (900, 900)  # 固定的显示尺寸
 
 
 # 自定义异常
